@@ -209,7 +209,7 @@ class KirimChiqimView(GenericAPIView):
 
 
 class DiagramAPIView(GenericAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, key):
 
