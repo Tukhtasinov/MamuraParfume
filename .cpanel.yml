@@ -1,0 +1,8 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/u5008748/public_html  # Set the deployment path
+    - /bin/cp -r * $DEPLOYPATH                      # Copy all files to deployment path
+    - cd $DEPLOYPATH                                 # Change directory to deployment path
+    - pip install -r req.txt                          # Install libraries from req.txt
+    - python manage.py migrate                       # Run database migrations (if needed)
+    - python manage.py collectstatic --noinput
