@@ -1,0 +1,454 @@
+Hamma api'lar uchun docs iloji boricha to'liq va aniq qilingan
+
+1. Account
+
+#POST http://139.162.109.251:8000/api/v1/account/  Token Obtain Pair
+Parameters : username : '<username>'
+           : password : '<password>'
+
+Return : access_token : '<access_token>'
+       : refresh_token : '<refresh_token>'
+
+#POST http://139.162.109.251:8000/api/v1/account/token/refresh/ Token Refresh
+Parameters : refresh : '<refresh_token>'
+
+Return : access_token : '<access_token>'
+       : refresh_token : '<refresh_token>'
+
+2. Main
+
+#POST http://139.162.109.251:8000/api/v1/brand-add/ Create Brand
+Parameters > name : '<brand_name>'
+
+Return : success : true / Error
+
+#PATCH http://139.162.109.251:8000/api/v1/brand-edit/{id}/ Edit Brand via id (1; 3; 123)
+Parameters > name : '<brand_name>'
+
+Return : success : true / Error
+
+#GET http://139.162.109.251:8000/api/v1/brands/   Get All Brands
+Return > Brands List
+
+#GET http://139.162.109.251:8000/api/v1/categories/ Get All Categories
+return > Categories List
+
+#GET http://139.162.109.251:8000/api/v1/category-add/ Create Category
+Parameters > name : '<category_name>'
+
+Return : success : true / Error
+
+#PATCH http://139.162.109.251:8000/api/v1/category-edit/{id}/ Edit Category via id (34; 23; 100)
+Parameters > name : '<category_name>'
+
+Return : success : true / Error
+
+#GET http://139.162.109.251:8000/api/v1/diagram/{key}/ Get Diagram Data via key ['today', 'weekly', 'monthly', 'year']
+Return > {
+          success : true
+          [data]
+         }
+
+#GET http://139.162.109.251:8000/api/v1/kirim-chiqim/{keyword}/ Kirim Chiqim Data via keyword ['today', 'weekly', 'monthly', 'year']
+Return > {
+              success : true,
+              data : {
+                    kirim : 100000,
+                    chiqim : 100000,
+                    foyda: 100000,
+                    xaridlar_soni : 23
+              }
+         }
+
+#GET http://139.162.109.251:8000/api/v1/notification-detial/{id}/   Notification Detail via id {2; 45 ; 103}
+Return > {
+              "success": true,
+              "notification": {
+                "id": 1,
+                "name": "Salom Qales",
+                "status": true,
+                "created_at": "2024-04-29T11:13:27.170877+05:00",
+                "store_id": 1
+                }
+          }
+
+#DELETE http://139.162.109.251:8000/api/v1/notification-detail/{id} Delete Notification via id {1, 43, 271}
+Return > {
+             "success": true,
+             "message": "Notification Deleted Successfully!"
+         }
+
+#GET http://139.162.109.251:8000/api/v1/notifications/ Get All Notification 🛎
+Return > {
+              "success": true,
+              "notification": [
+                {
+                  "id": 2,
+                  "name": "salom",
+                  "status": false,
+                  "created_at": "2024-04-29T11:19:00.765572+05:00",
+                  "store_id": 1
+                }
+              ]
+          }
+
+#POST http://139.162.109.251:8000/api/v1/order-create/ Create Order
+Parameters > {
+                  "count": 2147483647, # if count is incorrect, api would return an error with message
+                  "price": 2147483647,
+                  "payment_method": "CARD"/"CASH",
+                  "store_id": 2
+             }
+
+Return > {
+              "success": true,
+              "message": "Order Created Successfully"
+         }
+
+#PATCH http://139.162.109.251:8000/api/v1/order-crud/{id}/ Edit Order via id {23; 43; 543}
+Parameters > {
+                  "count": 2147483647,
+                  "price": 2147483647,
+                  "payment_method": "CARD"
+             }
+
+Return > {
+              "success": true,
+              "message": "Order Edited Successfully"
+         }
+
+#DELETE http://139.162.109.251:8000/api/v1/order-crud/{id}/ Delete order via id {12, 4443, 4554}
+Return > {
+              "success": true,
+              "message": "Order Deleted Successfully"
+         }
+
+#GET http://139.162.109.251:8000/api/v1/orders/ Orders List
+Return > {
+              "success": true,
+              "orders": [
+                {
+                  "id": 1,
+                  "product_id": 3,
+                  "product_name": "akjvnsjefje",
+                  "count": 12,
+                  "price": 132,
+                  "payment_method": "CASH",
+                  "created_at": "2024-04-26T11:39:33.818939+05:00"
+                },
+                {
+                  "id": 2,
+                  "product_id": 2,
+                  "product_name": "alaklksrlge54g",
+                  "count": 133,
+                  "price": 1223,
+                  "payment_method": "CARD",
+                  "created_at": "2024-04-26T11:39:46.013339+05:00"
+                },
+                {
+                  "id": 3,
+                  "product_id": 3,
+                  "product_name": "akjvnsjefje",
+                  "count": 23,
+                  "price": 4444,
+                  "payment_method": "CARD",
+                  "created_at": "2024-04-26T11:39:55.150262+05:00"
+                },
+                {
+                  "id": 4,
+                  "product_id": 2,
+                  "product_name": "alaklksrlge54g",
+                  "count": 3232,
+                  "price": 1123,
+                  "payment_method": "CASH",
+                  "created_at": "2024-04-26T11:40:04.938608+05:00"
+                },
+                {
+                  "id": 5,
+                  "product_id": 1,
+                  "product_name": "Chanel Blue",
+                  "count": 12,
+                  "price": 10003,
+                  "payment_method": "CASH",
+                  "created_at": "2024-04-26T11:40:25.714892+05:00"
+                },
+                {
+                  "id": 6,
+                  "product_id": 1,
+                  "product_name": "Chanel Blue",
+                  "count": 12345,
+                  "price": 123344,
+                  "payment_method": "CARD",
+                  "created_at": "2024-04-26T11:40:37.210442+05:00"
+                },
+                {
+                  "id": 8,
+                  "product_id": 1,
+                  "product_name": "Chanel Blue",
+                  "count": 2,
+                  "price": 2147483647,
+                  "payment_method": "CARD",
+                  "created_at": "2024-04-29T11:21:43.838154+05:00"
+                }
+              ]
+          }
+
+#GET http://139.162.109.251:8000/api/v1/order-filter-by-dates/   Filter Order by dates
+Parameters > {
+                    'start_day': 2024.02.21,
+                    'end_day': 2024.03.02   # end_day bo'lmasa ham ishlaydi
+             }
+
+Return > {
+                'success': true,
+                data: data
+         }
+
+#GET http://139.162.109.251:8000/api/v1/order-filter-by-today/ Filter Order by Today
+Return > {
+              success: true,
+              data: data
+         }
+
+#GET http://139.162.109.251:8000/api/v1/order-search/     Search with Product Name ot Product Id
+Return > {
+                'succeed': true,
+                data: data
+         }
+
+#POST http://139.162.109.251:8000/api/v1/product-add/   Create a new product
+Parameters > {
+                  "name": "string",
+                  "description": "string",
+                  "category": 0,
+                  "brand": 0,
+                  image: image.png
+             }
+
+Return > {
+         success: true,
+}
+
+
+#PATCH http://139.162.109.251:8000/api/v1/product-edit/{id} Edit a Product
+Parameters > {
+                  "name": "string",
+                  "description": "string",
+                  "category": 2,
+                  "brand": 1
+             }  bitta field ni ham 3 tani ham jo'natsa bo'ladi
+
+Return > {
+              "success": true,
+              "message": "Product Edited Successfully"
+         }
+
+#GET http://139.162.109.251:8000/api/v1/product-get/{id}/   Get Product Detail via id {1, 32, 542, 213, 8}
+Return  > {
+              "success": true,
+              "product_data": {
+                "id": 1,
+                "category": {
+                  "id": 2,
+                  "name": "Sovun",
+                  "created_at": "2024-04-22T11:22:15.494569+05:00"
+                },
+                "brand": {
+                  "id": 1,
+                  "name": "Chanel",
+                  "created_at": "2024-04-22T11:21:09.035715+05:00"
+                },
+                "name": "string",
+                "description": "string",
+                "image": "http://139.162.109.251:8000/media/product_images/product.png",
+                "created_at": "2024-04-22T11:24:19.199000+05:00",
+                "currently_product_count": 15,
+                "sold_product_count": 15759
+              }
+            }
+
+#GET http://139.162.109.251:8000/api/v1/products/   Get All Products
+Return > {
+              "success": true,
+              "data": [
+                {
+                  "id": 2,
+                  "category": {
+                    "id": 2,
+                    "name": "Sovun",
+                    "created_at": "2024-04-22T11:22:15.494569+05:00"
+                  },
+                  "brand": {
+                    "id": 4,
+                    "name": "Dr.Rashid",
+                    "created_at": "2024-04-22T11:21:44.685353+05:00"
+                  },
+                  "name": "alaklksrlge54g",
+                  "description": "watsrgdhjkuytyrtzhrgsdvz",
+                  "image": "http://139.162.109.251:8000/media/product_images/product_XdQPTOR.png",
+                  "created_at": "2024-04-22T11:24:39.048391+05:00"
+                },
+                {
+                  "id": 3,
+                  "category": {
+                    "id": 3,
+                    "name": "Atir",
+                    "created_at": "2024-04-22T11:22:23.126108+05:00"
+                  },
+                  "brand": {
+                    "id": 2,
+                    "name": "Orfilame",
+                    "created_at": "2024-04-22T11:21:30.693931+05:00"
+                  },
+                  "name": "akjvnsjefje",
+                  "description": "poiuytrfdxcvbnmkl;'/.,m",
+                  "image": "http://139.162.109.251:8000/media/product_images/product_yURzYR8.png",
+                  "created_at": "2024-04-22T11:25:10.394664+05:00"
+                },
+                {
+                  "id": 1,
+                  "category": {
+                    "id": 2,
+                    "name": "Sovun",
+                    "created_at": "2024-04-22T11:22:15.494569+05:00"
+                  },
+                  "brand": {
+                    "id": 1,
+                    "name": "Chanel",
+                    "created_at": "2024-04-22T11:21:09.035715+05:00"
+                  },
+                  "name": "string",
+                  "description": "string",
+                  "image": "http://139.162.109.251:8000/media/product_images/product.png",
+                  "created_at": "2024-04-22T11:24:19.199000+05:00"
+                }
+              ]
+          }
+
+#GET http://139.162.109.251:8000/api/v1/report-about-payment-method/    Report about payment method For Dashboard PIA CHART part
+Return > {
+              "success": true,
+              "data": {
+                "total_price": 5821665001,
+                "total_price_by_cash": 3751156,
+                "total_price_by_card": 5817913845
+              }
+         }
+
+#POST http://139.162.109.251:8000/api/v1/store-create/    Create a new store
+Parameters > {
+                  "sell_price": 2147483647,
+                  "count": 2147483647,
+                  "buy_price": 2147483642,
+                  "product": 8
+             }
+
+Return > {
+            'success': True,
+            'message': "Store Created Successfully!"
+         }
+
+#GET http://139.162.109.251:8000/api/v1/store-get-edit/{id}/    Get Detail of Store
+Return > {
+              "success": true,
+              "data": {
+                "id": 1,
+                "product": 3,
+                "product_name": "akjvnsjefje",
+                "sell_price": 15000,
+                "count": 10,
+                "buy_price": 10000,
+                "updated_at": "2024-04-22T11:25:37.810696+05:00",
+                "product_image": "/media/product_images/product_yURzYR8.png"
+              }
+          }
+
+#PATCH http://139.162.109.251:8000/api/v1/store-get-edit/{id}/ Edit store via id {2, 76, 77, 22 }
+Parameters > {
+                  "product": 0,
+                  "sell_price": 2147483647,
+                  "count": 2147483647,
+                  "buy_price": 2147483647
+             }
+
+Return > {
+            'success': True,
+             'message': 'Store Edited Successfully'
+         }
+
+#GET http://139.162.109.251:8000/api/v1/store-history/{store_id}/ Get Store history via store id
+Return > {
+              "success": true,
+              "store_histories": [
+                {
+                  "sell_price": 12300,
+                  "count": 2,
+                  "buy_price": 10000,
+                  "created_at": "2024-04-26T11:41:08.633736+05:00",
+                  "store_id": 1
+                }
+              ]
+         }
+
+#GET http://139.162.109.251:8000/api/v1/store-search/    Store Search with  Product Name and Product ID
+Return > [
+          {
+            "id": 2,
+            "product": 1,
+            "product_name": "string",
+            "sell_price": 343000,
+            "count": 15,
+            "buy_price": 320000,
+            "updated_at": "2024-04-22T11:26:19.387373+05:00"
+          }
+        ]
+
+# GET http://139.162.109.251:8000/api/v1/store/{extra}/ Store filter,
+Parameters > extra => ['all', 'less', 'finished']
+
+Return > [
+              {
+                "id": 2,
+                "product": 1,
+                "product_name": "string",
+                "sell_price": 343000,
+                "count": 15,
+                "buy_price": 320000,
+                "updated_at": "2024-04-22T11:26:19.387373+05:00"
+              }
+         ]
+
+#GET http://139.162.109.251:8000/api/v1/thebest-seller-brand/    The Best Seller Brand's name
+Return > {
+          "Chanel": {
+            "total_sold": 12359,
+            "total_price": 5817769010
+          },
+          "Dr.Rashid": {
+            "total_sold": 3365,
+            "total_price": 3792195
+          },
+          "Orfilame": {
+            "total_sold": 35,
+            "total_price": 103796
+          }
+        }
+
+#GET http://139.162.109.251:8000/api/v1/themost-sold-products/  Yhe Most Sold Product's name
+Return > {
+              "status": true,
+              "product": {
+                "string": {
+                  "total_count": 12359,
+                  "total_price": 5817769010
+                },
+                "alaklksrlge54g": {
+                  "total_count": 3365,
+                  "total_price": 3792195
+                },
+                "akjvnsjefje": {
+                  "total_count": 35,
+                  "total_price": 103796
+                }
+              }
+          }

@@ -5,14 +5,13 @@ from dateutil.relativedelta import relativedelta
 from django.core.serializers import serialize
 from django.db.models import Sum
 from django.utils import timezone
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import filters
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from rest_framework.pagination import PageNumberPagination
 from main.models import Order, Store, StoreHistory
 from main.serializers import OrderCreateSerializer, OrderSerializer, NotificationSerializer
 from main.tasks import kirim_chiqim_canculator
@@ -92,8 +91,11 @@ class OrderGetView(GenericAPIView):
 
     def get(self, request):
         order = Order.objects.all()
-        serializer = self.get_serializer(order, many=True)
-
+        page = self.paginate_queryset(order)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(orders, many=True)
         return Response({'success': True, 'orders': serializer.data})
 
 
@@ -122,8 +124,11 @@ class OrderFilterByToday(GenericAPIView):
     def get(self, request):
         today = timezone.now().date()
         orders = Order.objects.filter(created_at__date=today)
+        page = self.paginate_queryset(orders)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(orders, many=True)
-
         return Response({'success': True, 'data': serializer.data})
 
 
@@ -141,7 +146,11 @@ class OrderFilterByDates(GenericAPIView):
         elif start_day:
             orders = Order.objects.filter(created_at__date=start_day)
 
-        serializer = self.get_serializer(orders)
+        page = self.paginate_queryset(orders)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(orders, many=True)
         return Response({'success': True, 'order': serializer.data})
 
 
@@ -171,7 +180,7 @@ class DiagramByPaymentMethod(GenericAPIView):
 class KirimChiqimView(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, keyword):
+    def get(self, request, key):
         data = {}
         kirim = 0
         chiqim = 0
@@ -181,15 +190,19 @@ class KirimChiqimView(GenericAPIView):
         today = timezone.now().date()
         start_day = 0
 
-        if keyword == 'today':
+        if key == 'today':
             stores = StoreHistory.objects.filter(created_at__date=today)
             orders = Order.objects.filter(created_at__date=today)
-        if keyword == 'weekly':
+        if key == 'weekly':
             start_day = today - timedelta(days=7)
             orders = Order.objects.filter(created_at__date__range=[start_day, today])
             stores = StoreHistory.objects.filter(created_at__date__range=[start_day, today])
-        if keyword == 'monthly':
+        if key == 'monthly':
             start_day = today - timedelta(days=30)
+            orders = Order.objects.filter(created_at__date__range=[start_day, today])
+            stores = StoreHistory.objects.filter(created_at__date__range=[start_day, today])
+        if key == 'year':
+            start_day = today - timedelta(days=365)
             orders = Order.objects.filter(created_at__date__range=[start_day, today])
             stores = StoreHistory.objects.filter(created_at__date__range=[start_day, today])
 
@@ -215,6 +228,18 @@ class DiagramAPIView(GenericAPIView):
 
         data = {}
         today = timezone.now().date()
+        if key == 'today':
+            for i in range(24):
+                start_hour = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=i + 1)
+                end_hour = start_hour + timedelta(hours=1)
+
+                orders = Order.objects.filter(created_at__gte=start_hour, created_at__lt=end_hour)
+
+                report = sum(order.count * order.price for order in orders)
+
+                hour_key = start_hour.strftime('%Y-%m-%d %H:%M:%S')
+                data[hour_key] = report
+
         if key == 'weekly':
 
             for i in range(0, 6):
@@ -244,8 +269,31 @@ class DiagramAPIView(GenericAPIView):
         return Response({'success': True, 'data': data})
 
 
+class FilterByPaymentMethod(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+    serializer_class = OrderSerializer
 
+    def get(self, request, type):
+        type = type.upper()
+        if type not in ['CASH', 'CARD']:
+            return Response({'success': False, 'message': 'Invalid payment type, You can write CASH or CARD types for getting data🙃'})
+        orders = Order.objects.filter(payment_method=type).order_by('id')
 
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(orders, request)
+        serializer = self.serializer_class(page, many=True)
+
+        page_count = paginator.page.paginator.num_pages
+        current_page = paginator.page.number
+
+        # Construct response data
+        response_data = {
+            'results': serializer.data,
+            'page_size': page_count,
+            'current_page': current_page
+        }
+        return Response({'success': True, 'data': response_data})
 
 
 

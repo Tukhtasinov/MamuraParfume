@@ -4,7 +4,7 @@ from rest_framework import status, filters
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from rest_framework.pagination import PageNumberPagination
 from main.models import StoreHistory, Store, Product
 from main.serializers import StoreCreateSerializer, StoreHistorySerializer, StoreAllFieldSerializer
 
@@ -27,19 +27,23 @@ class StoreCreateView(GenericAPIView):
 
 
 class StoreGetWithExtra(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+    # permission_classes = [IsAuthenticated]
     serializer_class = StoreAllFieldSerializer
 
     def get(self, request, extra):
         stores = 0
-        match extra:
-            case 'all':
-                stores = Store.objects.all()
-            case 'less':
-                stores = Store.objects.filter(count__lt=6)
-            case 'finished':
-                stores = Store.objects.filter(count=0)
+        if extra == 'all':
+            stores = Store.objects.all()
+        if extra == 'less':
+            stores = Store.objects.filter(count__lt=6)
+        if extra == 'finished':
+            stores = Store.objects.filter(count=0)
 
+        page = self.paginate_queryset(stores)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(stores, many=True)
         stores_data = serializer.data
         for store_data in stores_data:
@@ -102,7 +106,7 @@ class StoreHistoryView(GenericAPIView):
 
     def get(self, request, store_id):
         store_histories = StoreHistory.objects.filter(store_id=store_id)
-        serializer = self.get_serializer(store_histories)
+        serializer = self.get_serializer(store_histories, many=true)
 
         return Response({'success': True, "store_histories": serializer.data}, status=200)
 

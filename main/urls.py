@@ -4,7 +4,7 @@ from .views import ProductAddGenericApiView, ProductCRUDGenericAPIView, Category
     StoreHistoryView, OrderEditOrDeleteView, OrderCreateView, NotificationDetailView, GetNotificationView, \
     StoreGetWithExtra, StoreSearchView, OrderGetView, OrderSearchView, OrderFilterByToday, OrderFilterByDates, \
     BrandSearchView, CategorySearchView, TheBestSellerBrand, ProductSearchView, TheMostSoldProductView, \
-    DiagramByPaymentMethod, KirimChiqimView, DiagramAPIView
+    DiagramByPaymentMethod, KirimChiqimView, DiagramAPIView, AllProductGetView, FilterByPaymentMethod
 
 urlpatterns = [
     path('product-add/', ProductAddGenericApiView.as_view(), name='product-add'),
@@ -37,5 +37,6 @@ urlpatterns = [
     path('report-about-paymant-method/', DiagramByPaymentMethod.as_view(), name='report-by payment-method'),
     path('kirim-chiqim/<str:keyword>', KirimChiqimView.as_view(), name='kirim-chiqim'),
     path('diagram/<str:key>', DiagramAPIView.as_view(), name='diagram'),
-
+    path('products/', AllProductGetView.as_view(), name='products'),
+    path('order-filter-by-payment-method/<str:type>', FilterByPaymentMethod.as_view(), name='order-filter-by-payment-method'),
 ]

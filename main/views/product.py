@@ -10,6 +10,20 @@ from main.serializers import ProductAddSerializer, ProductAllFieldsSerializer, P
     TopSoldProductSerializer
 
 
+class AllProductGetView(GenericAPIView):
+    serializer_class = ProductAllFieldsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = Product.objects.all()
+        page = self.paginate_queryset(data)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(data, many=True)
+        return Response({'success': True, 'data': serializer.data})
+
+
 class ProductAddGenericApiView(GenericAPIView):
     serializer_class = ProductAddSerializer
     permission_classes = (IsAuthenticated,)
@@ -24,7 +38,7 @@ class ProductAddGenericApiView(GenericAPIView):
 
 class ProductCRUDGenericAPIView(GenericAPIView):
     serializer_class = ProductPatchSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get_product(self, product_id):
         product = Product.objects.get(pk=product_id)
@@ -40,6 +54,15 @@ class ProductCRUDGenericAPIView(GenericAPIView):
             return Response({'success': True, 'message': 'Product Edited Successfully'}, status=status.HTTP_206_PARTIAL_CONTENT)
         except ObjectDoesNotExist:
             return Response({'detail': 'Product does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        try:
+            product = self.get_product(pk)
+            product.delete()
+
+            return Response({'success': True, 'message': 'Product Deleted Successfully'})
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Such product does not exist'})
 
 
 class ProductDetailView(GenericAPIView):

@@ -27,15 +27,26 @@ class CategoryGetAll(GenericAPIView):
 
     def get(self, request):
         categories = Category.objects.all()
-        serializer = self.serializer_class(categories, many=True)
-        serializer_data = serializer.data
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(categories, request)
+        serializer = self.serializer_class(page, many=True)
 
+        page_count = paginator.page.paginator.num_pages
+        current_page = paginator.page.number
+        serializer_data = serializer.data
         for category_data in serializer_data:
+            print("Brand >>>>", category_data)
             category_id = category_data['id']
             product_count = Product.objects.filter(category_id=category_id).count()
-            category_data['product_count'] = product_count
+            category_data.update({'product_count': product_count})
 
-        return Response({'success': True, 'categories': serializer_data}, status=status.HTTP_200_OK)
+        # Construct response data
+        response_data = {
+            'results': serializer.data,
+            'page_size': page_count,
+            'current_page': current_page
+        }
+        return Response({'success': True, 'data': response_data})
 
 
 class CategoryEditView(GenericAPIView):

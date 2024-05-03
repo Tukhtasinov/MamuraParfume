@@ -10,13 +10,18 @@ from main.serializers import BrandAddSerializer, BrandAllFieldSerializer, BrandF
 
 
 class BrandAllGetView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = BrandAllFieldSerializer
 
     def get(self, request):
         brands_data = Brand.objects.filter().order_by('-id')
         print(brands_data)
-        serializer = self.serializer_class(brands_data, many=True)
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(brands_data, request)
+        serializer = self.serializer_class(page, many=True)
+
+        page_count = paginator.page.paginator.num_pages
+        current_page = paginator.page.number
         serializer_data = serializer.data
         for brand_data in serializer_data:
             print("Brand >>>>", brand_data)
@@ -24,7 +29,13 @@ class BrandAllGetView(GenericAPIView):
             product_count = Product.objects.filter(brand_id=brand_id).count()
             brand_data.update({'product_count': product_count})
 
-        return Response({'success': True, 'brands': serializer_data})
+        # Construct response data
+        response_data = {
+            'results': serializer.data,
+            'page_size': page_count,
+            'current_page': current_page
+        }
+        return Response({'success': True, 'data': response_data})
 
 
 class BrandAddView(GenericAPIView):
@@ -60,30 +71,28 @@ class BrandSearchView(GenericAPIView):
 
 
 class TheBestSellerBrand(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = BrandForTheBest
 
     def get(self, request):
-
         top_sold_products = Order.objects.values('store_id__product__brand__name', 'store_id__product__name').annotate(
             total_sold=Sum('count')).order_by('-total_sold')[:5]
 
-        brand_sales = {}
+        brand_sales = []
         for product in top_sold_products:
             brand_name = product['store_id__product__brand__name']
             product_name = product['store_id__product__name']
 
             orders = Order.objects.filter(store_id__product__name=product_name)
-            total_price = 0
+            total_price = sum(order.price * order.count for order in orders)
             total_sold = product['total_sold']
-            for i in orders:
-                total_price += i.price * i.count
 
-            if brand_name in brand_sales:
-                brand_sales[brand_name]['total_sold'] += total_sold
-                brand_sales[brand_name]['total_price'] += total_price
-            else:
-                brand_sales[brand_name] = {'total_sold': total_sold, 'total_price': total_price}
+            brand_data = {
+                'name': brand_name,
+                'total_count': total_sold,
+                'total_price': total_price
+            }
+            brand_sales.append(brand_data)
 
         return Response(brand_sales)
 
