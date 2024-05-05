@@ -29,7 +29,10 @@ class CategoryGetAll(GenericAPIView):
         categories = Category.objects.all()
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(categories, request)
-        serializer = self.serializer_class(page, many=True)
+        if page is None:
+            serializer = self.get_serializer(categories, many=True)
+            return Response({'success': True, 'data': serializer.data})
+        serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
         current_page = paginator.page.number
@@ -74,4 +77,6 @@ class CategorySearchView(GenericAPIView):
     serializer_class = CategoryAllFieldsSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+
 

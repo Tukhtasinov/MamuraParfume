@@ -12,16 +12,35 @@ from main.serializers import ProductAddSerializer, ProductAllFieldsSerializer, P
 
 class AllProductGetView(GenericAPIView):
     serializer_class = ProductAllFieldsSerializer
+    pagination_class = PageNumberPagination
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         data = Product.objects.all()
-        page = self.paginate_queryset(data)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(data, many=True)
-        return Response({'success': True, 'data': serializer.data})
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(data, request)
+        if page is None:
+            serializer = self.get_serializer(data, many=True)
+            return Response({'success': True, 'data': serializer.data})
+        serializer = self.get_serializer(page, many=True)
+        products_data = serializer.data
+        for product in products_data:
+            product_id = product.get('id')
+            currently_count = Store.objects.get(product_id=product_id)
+            sold_count = Order.objects.aggregate(count=Sum('count'))
+            product.update({'currently_product_count': currently_count.count})
+            product.update({'sold_product_count': sold_count['count'] if sold_count['count'] is not None else 0})
+
+        page_count = paginator.page.paginator.num_pages
+        current_page = paginator.page.number
+
+        # Construct response data
+        response_data = {
+            'results': products_data,
+            'page_size': page_count,
+            'current_page': current_page
+        }
+        return Response({'success': True, 'data': response_data})
 
 
 class ProductAddGenericApiView(GenericAPIView):
@@ -38,7 +57,7 @@ class ProductAddGenericApiView(GenericAPIView):
 
 class ProductCRUDGenericAPIView(GenericAPIView):
     serializer_class = ProductPatchSerializer
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get_product(self, product_id):
         product = Product.objects.get(pk=product_id)
@@ -101,7 +120,7 @@ class TheMostSoldProductView(GenericAPIView):
             total_price=Sum('price')
         ).order_by('-total_count')
         serializer = {}
-
+        result = []
         for product in top_sold_product:
             product_name = product['store_id__product__name']
             total_count = product['total_count']
@@ -111,8 +130,11 @@ class TheMostSoldProductView(GenericAPIView):
                 total_price += i.price * i.count
 
             data = {
+                'product_name': product_name,
                 'total_count': total_count,
                 'total_price': total_price,
             }
+            result.append(data)
             serializer.update({f'{product_name}': data})
-        return Response({'status': True, 'product': serializer})
+        return Response({'status': True,  'result': result})
+

@@ -10,7 +10,7 @@ from main.serializers import BrandAddSerializer, BrandAllFieldSerializer, BrandF
 
 
 class BrandAllGetView(GenericAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = BrandAllFieldSerializer
 
     def get(self, request):
@@ -18,7 +18,10 @@ class BrandAllGetView(GenericAPIView):
         print(brands_data)
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(brands_data, request)
-        serializer = self.serializer_class(page, many=True)
+        if page is None:
+            serializer = self.get_serializer(brands_data, many=True)
+            return Response({'success': True, 'data': serializer.data})
+        serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
         current_page = paginator.page.number
@@ -71,7 +74,7 @@ class BrandSearchView(GenericAPIView):
 
 
 class TheBestSellerBrand(GenericAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = BrandForTheBest
 
     def get(self, request):

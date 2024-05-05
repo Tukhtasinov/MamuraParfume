@@ -28,7 +28,7 @@ class StoreCreateView(GenericAPIView):
 
 class StoreGetWithExtra(GenericAPIView):
     pagination_class = PageNumberPagination
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = StoreAllFieldSerializer
 
     def get(self, request, extra):
@@ -40,20 +40,31 @@ class StoreGetWithExtra(GenericAPIView):
         if extra == 'finished':
             stores = Store.objects.filter(count=0)
 
-        page = self.paginate_queryset(stores)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(stores, many=True)
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(stores, request)
+        if page is None:
+            serializer = self.get_serializer(stores, many=True)
+            return Response({'success':True, 'data':serializer.data})
+        serializer = self.get_serializer(page, many=True)
+
+        page_count = paginator.page.paginator.num_pages
+        current_page = paginator.page.num
+
         stores_data = serializer.data
         for store_data in stores_data:
             product_id = store_data['product']
             product = Product.objects.get(id=product_id)
             store_data.update({'product_name': product.name})
-        print('Store ', serializer.data)
+        response_data = {
+            'results': stores_data,
+            'page_size': page_count,
+            'current_page': current_page
+        }
         text = 'Bunday zaxiralar hozirda mavjud emas 🙂'
 
         return Response({'success': True, 'data': stores_data if len(stores_data) > 0 else text})
+
+
 
 
 class StoreObtainEditView(GenericAPIView):
@@ -106,7 +117,7 @@ class StoreHistoryView(GenericAPIView):
 
     def get(self, request, store_id):
         store_histories = StoreHistory.objects.filter(store_id=store_id)
-        serializer = self.get_serializer(store_histories, many=true)
+        serializer = self.get_serializer(store_histories, many=True)
 
         return Response({'success': True, "store_histories": serializer.data}, status=200)
 
@@ -116,8 +127,4 @@ class StoreSearchView(ListAPIView):
     serializer_class = StoreAllFieldSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['product__id', 'product__name']
-
-
-
-
 
