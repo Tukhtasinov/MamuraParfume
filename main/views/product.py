@@ -26,10 +26,14 @@ class AllProductGetView(GenericAPIView):
         products_data = serializer.data
         for product in products_data:
             product_id = product.get('id')
-            currently_count = Store.objects.get(product_id=product_id)
-            sold_count = Order.objects.aggregate(count=Sum('count'))
-            product.update({'currently_product_count': currently_count.count})
-            product.update({'sold_product_count': sold_count['count'] if sold_count['count'] is not None else 0})
+            try:
+                currently_count = Store.objects.get(product_id=product_id)
+                sold_count = Order.objects.filter(store_id=currently_count.id).aggregate(count=Sum('count'))
+                product.update({'currently_product_count': currently_count.count})
+                product.update({'sold_product_count': sold_count['count'] if sold_count['count'] is not None else 0})
+            except ObjectDoesNotExist:
+                product.update({'currently_product_count': 0})
+                product.update({'sold_product_count': 0})
 
         page_count = paginator.page.paginator.num_pages
         current_page = paginator.page.number

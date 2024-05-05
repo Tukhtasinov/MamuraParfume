@@ -48,7 +48,7 @@ class StoreGetWithExtra(GenericAPIView):
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
-        current_page = paginator.page.num
+        current_page = paginator.page.number
 
         stores_data = serializer.data
         for store_data in stores_data:
@@ -62,9 +62,7 @@ class StoreGetWithExtra(GenericAPIView):
         }
         text = 'Bunday zaxiralar hozirda mavjud emas 🙂'
 
-        return Response({'success': True, 'data': stores_data if len(stores_data) > 0 else text})
-
-
+        return Response({'success': True, 'data': response_data if len(stores_data) > 0 else text})
 
 
 class StoreObtainEditView(GenericAPIView):
