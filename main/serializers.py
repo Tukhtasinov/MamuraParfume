@@ -91,12 +91,12 @@ class OrderCreateSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    product_id = serializers.IntegerField(source='store_id.product_id', read_only=True)
-    product_name = serializers.CharField(source='store_id.product.name', read_only=True)
+    # product_id = serializers.IntegerField(source='store_id.product_id', read_only=True)
+    # product_name = serializers.CharField(source='store_id.product.name', read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'product_id', 'product_name', 'count', 'price', 'payment_method', 'created_at']
+        fields = '__all__'
 
 
 class NotificationSerializer(ModelSerializer):

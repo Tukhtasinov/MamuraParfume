@@ -86,45 +86,55 @@ class OrderEditOrDeleteView(GenericAPIView):
 
 class OrderGetView(GenericAPIView):
     pagination_class = PageNumberPagination
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
     def get(self, request):
-        order = Order.objects.all()
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(order, request)
-        if page is None:
-            serializer = self.get_serializer(order, many=True)
-            return Response({'success': True, 'data': serializer.data})
-        serializer = self.get_serializer(page, many=True)
-        page_count = paginator.page.paginator.num_pages
-        current_page = paginator.page.number
-
-        # Construct response data
-        response_data = {
-            'results': serializer.data,
-            'page_size': page_count,
-            'current_page': current_page
-        }
-        return Response({'success': True, 'data': response_data})
+        try:
+            order = Order.objects.all()
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(order, request)
+            serializer = OrderSerializer(page, many=True) if page is not None else OrderSerializer(order, many=True)
+            response_data = {
+                'success': True,
+                'data': serializer.data,
+                'page_size': paginator.page.paginator.num_pages if page is not None else None,
+                'current_page': paginator.page.number if page is not None else None
+            }
+            return Response(response_data, status=200)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
 
-class OrderSearchView(ListAPIView):
+class OrderSearchView(GenericAPIView):
+    queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'store_id', 'store_id.product__id']
 
-    def get_queryset(self):
-        queryset = Order.objects.all()
-        product_id = self.request.query_params.get('product_id')
-        product_name = self.request.query_params.get('product_name')
-        temp = [{'success': True, 'order': 'Hozirda bunday malumotlar yoq'}]
-        if product_id:
+    def get(self, request, *args, **kwargs):
+        # Get query parameters from the request
+        product_id = request.query_params.get('product_id')
+        product_name = request.query_params.get('product_name')
+        store_id = request.query_params.get('store_id')
 
-            temp = queryset.filter(store_id__product_id=product_id)
-        if product_name:
+        queryset = self.get_queryset()
+        if product_id and store_id:
+            queryset = queryset.filter(store_id__product_id=product_id, store_id=store_id)
+        elif product_name and store_id:
+            queryset = queryset.filter(store_id__product__name__icontains=product_name, store_id=store_id)
+        elif store_id:
+            queryset = queryset.filter(store_id=store_id)
+        elif product_id:
+            queryset = queryset.filter(store_id__product_id=product_id)
+        elif product_name:
+            queryset = queryset.filter(store_id__product__name__icontains=product_name)
+        else:
+            queryset = []
 
-            temp = queryset.filter(store_id__product__name__icontains=product_name)
-
-        return temp
+        # Serialize the queryset and return response
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
 
 
 class OrderFilterByToday(GenericAPIView):
