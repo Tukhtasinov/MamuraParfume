@@ -10,20 +10,24 @@ from main.serializers import StoreCreateSerializer, StoreHistorySerializer, Stor
 
 
 class StoreCreateView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = StoreCreateSerializer
 
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        store_data = serializer.save()
-        data = serializer.data
-        data.update({'store_id': store_data.id})
-        store_history = StoreHistorySerializer(data=data)
-        store_history.is_valid(raise_exception=True)
-        store_history.save()
+        product_id = request.data.get('product')
+        if not Store.objects.filter(product=product_id).exists():
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            store_data = serializer.save()
+            data = serializer.data
+            data.update({'store_id': store_data.id})
+            store_history = StoreHistorySerializer(data=data)
+            store_history.is_valid(raise_exception=True)
+            store_history.save()
 
-        return Response({'success': True, 'message': "Store Created Successfully!"})
+            return Response({'success': True, 'message': "Store Created Successfully!"})
+        store = Store.objects.get(product=product_id)
+        return Response({'success': False, 'message': "Bunday Mahsulot Zaxirasi Avval Qo'shilgan", 'store_id': store.id})
 
 
 class StoreGetWithExtra(GenericAPIView):
@@ -42,7 +46,7 @@ class StoreGetWithExtra(GenericAPIView):
 
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(stores, request)
-        if page is None:
+        if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(stores, many=True)
             return Response({'success':True, 'data':serializer.data})
         serializer = self.get_serializer(page, many=True)

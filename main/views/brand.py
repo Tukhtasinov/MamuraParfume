@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from rest_framework import status, filters
 from rest_framework.generics import GenericAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -10,6 +11,7 @@ from main.serializers import BrandAddSerializer, BrandAllFieldSerializer, BrandF
 
 
 class BrandAllGetView(GenericAPIView):
+    pagination_class = PageNumberPagination
     permission_classes = [IsAuthenticated]
     serializer_class = BrandAllFieldSerializer
 
@@ -18,7 +20,7 @@ class BrandAllGetView(GenericAPIView):
         print(brands_data)
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(brands_data, request)
-        if page is None:
+        if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(brands_data, many=True)
             return Response({'success': True, 'data': serializer.data})
         serializer = self.get_serializer(page, many=True)

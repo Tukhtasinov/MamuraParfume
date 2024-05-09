@@ -86,24 +86,30 @@ class OrderEditOrDeleteView(GenericAPIView):
 
 class OrderGetView(GenericAPIView):
     pagination_class = PageNumberPagination
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
     def get(self, request):
-        try:
-            order = Order.objects.all()
-            paginator = self.pagination_class()
-            page = paginator.paginate_queryset(order, request)
-            serializer = OrderSerializer(page, many=True) if page is not None else OrderSerializer(order, many=True)
-            response_data = {
-                'success': True,
-                'data': serializer.data,
-                'page_size': paginator.page.paginator.num_pages if page is not None else None,
-                'current_page': paginator.page.number if page is not None else None
-            }
-            return Response(response_data, status=200)
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+
+        order = Order.objects.all()
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(order, request)
+        if not request.query_params.get(self.pagination_class.page_query_param):
+            serializer = self.get_serializer(order, many=True)
+            return Response({'success': True, 'data': serializer.data})
+        serializer = self.get_serializer(page, many=True)
+
+        page_count = paginator.page.paginator.num_pages
+        current_page = paginator.page.number
+
+        # Construct response data
+        response_data = {
+            'results': serializer.data,
+            'page_size': page_count,
+            'current_page': current_page
+        }
+        return Response({'success': True, 'data': response_data})
+
 
 
 class OrderSearchView(GenericAPIView):
@@ -147,7 +153,7 @@ class OrderFilterByToday(GenericAPIView):
         orders = Order.objects.filter(created_at__date=today)
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(orders, request)
-        if page is None:
+        if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(orders, many=True)
             return Response({'success': True, 'data': serializer.data})
         serializer = self.get_serializer(page, many=True)
@@ -181,7 +187,7 @@ class OrderFilterByDates(GenericAPIView):
 
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(orders, request)
-        if page is None:
+        if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(orders, many=True)
             return Response({'success': True, 'data': serializer.data})
         serializer = self.get_serializer(page, many=True)
@@ -328,7 +334,7 @@ class FilterByPaymentMethod(GenericAPIView):
 
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(orders, request)
-        if page is None:
+        if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(orders, many=True)
             return Response({'success': True, 'data': serializer.data})
         serializer = self.get_serializer(page, many=True)

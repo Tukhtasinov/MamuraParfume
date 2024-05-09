@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status, filters
 from rest_framework.generics import GenericAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -21,24 +22,24 @@ class CategoryAdd(GenericAPIView):
 
 
 class CategoryGetAll(GenericAPIView):
-
-    permission_classes = (IsAuthenticated,)
+    pagination_class = PageNumberPagination
+    # permission_classes = (IsAuthenticated,)
     serializer_class = CategoryAllFieldsSerializer
 
     def get(self, request):
         categories = Category.objects.all()
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(categories, request)
-        if page is None:
+        if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(categories, many=True)
             return Response({'success': True, 'data': serializer.data})
+
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
         current_page = paginator.page.number
         serializer_data = serializer.data
         for category_data in serializer_data:
-            print("Brand >>>>", category_data)
             category_id = category_data['id']
             product_count = Product.objects.filter(category_id=category_id).count()
             category_data.update({'product_count': product_count})
@@ -77,6 +78,3 @@ class CategorySearchView(GenericAPIView):
     serializer_class = CategoryAllFieldsSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
-
-
-
