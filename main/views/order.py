@@ -1,19 +1,16 @@
-import datetime
 from datetime import timedelta
-from dateutil.relativedelta import relativedelta
-from django.core.serializers import serialize
-from django.db.models import Sum
-from django.utils import timezone
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import filters
-from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.generics import GenericAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
+
 from main.models import Order, Store, StoreHistory
 from main.serializers import OrderCreateSerializer, OrderSerializer, NotificationSerializer
-from main.tasks import kirim_chiqim_canculator
 
 
 class OrderCreateView(GenericAPIView):
@@ -47,7 +44,7 @@ class OrderCreateView(GenericAPIView):
                     elif store.count <= 5:
                         text = f"""       Ogohlantirish!!!
 
-                        {store.product.name } - ushbu mahsulot {store.count} dona qoldi!
+                        {store.product.name} - ushbu mahsulot {store.count} dona qoldi!
                         """
                         data = {
                             'name': text,
@@ -90,7 +87,6 @@ class OrderGetView(GenericAPIView):
     serializer_class = OrderSerializer
 
     def get(self, request):
-
         order = Order.objects.all()
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(order, request)
@@ -109,7 +105,6 @@ class OrderGetView(GenericAPIView):
             'current_page': current_page
         }
         return Response({'success': True, 'data': response_data})
-
 
 
 class OrderSearchView(GenericAPIView):
@@ -282,7 +277,8 @@ class DiagramAPIView(GenericAPIView):
 
         if key == 'today':
             for i in range(24):
-                start_hour = timezone.now().replace(hour=day.hour, minute=day.minute, second=day.second, microsecond=day.microsecond) - timedelta(hours=i + 1)
+                start_hour = timezone.now().replace(hour=day.hour, minute=day.minute, second=day.second,
+                                                    microsecond=day.microsecond) - timedelta(hours=i + 1)
                 end_hour = start_hour + timedelta(hours=1)
 
                 orders = Order.objects.filter(created_at__gte=start_hour, created_at__lt=end_hour)
@@ -329,7 +325,8 @@ class FilterByPaymentMethod(GenericAPIView):
     def get(self, request, type):
         type = type.upper()
         if type not in ['CASH', 'CARD']:
-            return Response({'success': False, 'message': 'Invalid payment type, You can write CASH or CARD types for getting data🙃'})
+            return Response({'success': False,
+                             'message': 'Invalid payment type, You can write CASH or CARD types for getting data🙃'})
         orders = Order.objects.filter(payment_method=type).order_by('id')
 
         paginator = self.pagination_class()
@@ -349,6 +346,3 @@ class FilterByPaymentMethod(GenericAPIView):
             'current_page': current_page
         }
         return Response({'success': True, 'data': response_data})
-
-
-

@@ -23,7 +23,7 @@ class CategoryAdd(GenericAPIView):
 
 class CategoryGetAll(GenericAPIView):
     pagination_class = PageNumberPagination
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = CategoryAllFieldsSerializer
 
     def get(self, request):
@@ -31,8 +31,14 @@ class CategoryGetAll(GenericAPIView):
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(categories, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
+
             serializer = self.get_serializer(categories, many=True)
-            return Response({'success': True, 'data': serializer.data})
+            categories_data = serializer.data
+            for category in categories_data:
+                category_id = category['id']
+                product_count = Product.objects.filter(category_id=category_id).count()
+                category.update({'product_count': product_count})
+            return Response({'success': True, 'data': categories_data})
 
         serializer = self.get_serializer(page, many=True)
 

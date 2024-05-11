@@ -17,26 +17,29 @@ class BrandAllGetView(GenericAPIView):
 
     def get(self, request):
         brands_data = Brand.objects.filter().order_by('-id')
-        print(brands_data)
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(brands_data, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(brands_data, many=True)
-            return Response({'success': True, 'data': serializer.data})
-        serializer = self.get_serializer(page, many=True)
+            brands_data = serializer.data
+            for brand in brands_data:
+                id = brand['id']
+                product_count = Product.objects.filter(brand_id=id).count()
+                brand.update({'product_count': product_count})
+            return Response({'success': True, 'data': brands_data})
 
+        serializer = self.get_serializer(page, many=True)
         page_count = paginator.page.paginator.num_pages
         current_page = paginator.page.number
         serializer_data = serializer.data
         for brand_data in serializer_data:
-            print("Brand >>>>", brand_data)
             brand_id = brand_data['id']
             product_count = Product.objects.filter(brand_id=brand_id).count()
             brand_data.update({'product_count': product_count})
 
         # Construct response data
         response_data = {
-            'results': serializer.data,
+            'results': serializer_data,
             'page_size': page_count,
             'current_page': current_page
         }

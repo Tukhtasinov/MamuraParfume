@@ -10,7 +10,7 @@ from main.serializers import StoreCreateSerializer, StoreHistorySerializer, Stor
 
 
 class StoreCreateView(GenericAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = StoreCreateSerializer
 
     def post(self, request):
