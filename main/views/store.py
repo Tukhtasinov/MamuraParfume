@@ -43,12 +43,12 @@ class StoreGetWithExtra(GenericAPIView):
             stores = Store.objects.filter(count__lt=6)
         if extra == 'finished':
             stores = Store.objects.filter(count=0)
-
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(stores, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(stores, many=True)
-            return Response({'success':True, 'data':serializer.data})
+            data = {'result': serializer.data}
+            return Response({'success':True, 'data': data})
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages

@@ -38,8 +38,10 @@ class CategoryGetAll(GenericAPIView):
                 category_id = category['id']
                 product_count = Product.objects.filter(category_id=category_id).count()
                 category.update({'product_count': product_count})
-            return Response({'success': True, 'data': categories_data})
-
+            data = {
+                'result': categories_data
+            }
+            return Response({'success': True, 'data': data})
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages

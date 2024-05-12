@@ -21,7 +21,8 @@ class AllProductGetView(GenericAPIView):
         page = paginator.paginate_queryset(data, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(data, many=True)
-            return Response({'success': True, 'data': serializer.data})
+            datas = {'result': serializer.data}
+            return Response({'success': True, 'data': datas})
         serializer = self.get_serializer(page, many=True)
         products_data = serializer.data
         for product in products_data:
@@ -122,8 +123,11 @@ class ProductSearchView(GenericAPIView):
         category_name = request.query_params.get('category')
         name = request.query_params.get('name')
         id = request.query_params.get('id')
-
         queryset = self.get_queryset()
+        if not request.query_params.get('product_name'):
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
         if brand_name and category_name and name and id:
             queryset = queryset.filter(id=id, name=name, brand__name=brand_name, category__name=category_name)
         elif brand_name and category_name and name:

@@ -26,7 +26,10 @@ class BrandAllGetView(GenericAPIView):
                 id = brand['id']
                 product_count = Product.objects.filter(brand_id=id).count()
                 brand.update({'product_count': product_count})
-            return Response({'success': True, 'data': brands_data})
+            data = {
+                'result': brands_data
+            }
+            return Response({'success': True, 'data': data})
 
         serializer = self.get_serializer(page, many=True)
         page_count = paginator.page.paginator.num_pages

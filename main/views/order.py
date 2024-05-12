@@ -92,7 +92,8 @@ class OrderGetView(GenericAPIView):
         page = paginator.paginate_queryset(order, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(order, many=True)
-            return Response({'success': True, 'data': serializer.data})
+            data = {'result': serializer.data}
+            return Response({'success': True, 'data': data})
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
@@ -150,7 +151,8 @@ class OrderFilterByToday(GenericAPIView):
         page = paginator.paginate_queryset(orders, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(orders, many=True)
-            return Response({'success': True, 'data': serializer.data})
+            data = {'result': serializer.data}
+            return Response({'success': True, 'data': data})
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
@@ -184,7 +186,8 @@ class OrderFilterByDates(GenericAPIView):
         page = paginator.paginate_queryset(orders, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(orders, many=True)
-            return Response({'success': True, 'data': serializer.data})
+            data = {"result": serializer.data}
+            return Response({'success': True, 'data': data})
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
@@ -333,7 +336,8 @@ class FilterByPaymentMethod(GenericAPIView):
         page = paginator.paginate_queryset(orders, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
             serializer = self.get_serializer(orders, many=True)
-            return Response({'success': True, 'data': serializer.data})
+            data = {'result': serializer.data}
+            return Response({'success': True, 'data': data})
         serializer = self.get_serializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
