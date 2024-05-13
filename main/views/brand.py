@@ -1,13 +1,13 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from rest_framework import status, filters
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from main.models import Brand, Product, Order
-from main.serializers import BrandAddSerializer, BrandAllFieldSerializer, BrandForTheBest
+from main.serializers import BrandAddSerializer, BrandAllFieldSerializer, BrandForTheBest, ProductAllFieldsSerializer
 
 
 class BrandAllGetView(GenericAPIView):
@@ -74,7 +74,7 @@ class BrandEditView(GenericAPIView):
         return Response({'success': True}, status=200)
 
 
-class BrandSearchView(GenericAPIView):
+class BrandSearchView(ListAPIView):
     queryset = Brand.objects.all()
     serializer_class = BrandAllFieldSerializer
     filter_backends = [filters.SearchFilter]

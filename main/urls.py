@@ -3,7 +3,7 @@ from .views import ProductAddGenericApiView, ProductCRUDGenericAPIView, Category
     ProductDetailView, BrandAddView, BrandEditView, BrandAllGetView, StoreCreateView, StoreObtainEditView, \
     StoreHistoryView, OrderEditOrDeleteView, OrderCreateView, NotificationDetailView, GetNotificationView, \
     StoreGetWithExtra, StoreSearchView, OrderGetView, OrderSearchView, OrderFilterByToday, OrderFilterByDates, \
-    BrandSearchView, CategorySearchView, TheBestSellerBrand, ProductSearchView, TheMostSoldProductView, \
+    BrandSearchView, CategorySearchView, TheBestSellerBrand, TheMostSoldProductView, \
     DiagramByPaymentMethod, KirimChiqimView, DiagramAPIView, AllProductGetView, FilterByPaymentMethod, ProductSearchView
 
 urlpatterns = [

@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from rest_framework import status, filters
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -111,59 +111,12 @@ class ProductDetailView(GenericAPIView):
             return Response({'detail': 'Product does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class ProductSearchView(GenericAPIView):
+class ProductSearchView(ListAPIView):
+
     queryset = Product.objects.all()
     serializer_class = ProductAllFieldsSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name', 'brand.name', 'category.name']
-
-    def get(self, request, *args, **kwargs):
-        # Get query parameters from the request
-        brand_name = request.query_params.get('brand')
-        category_name = request.query_params.get('category')
-        name = request.query_params.get('name')
-        id = request.query_params.get('id')
-        queryset = self.get_queryset()
-        if not request.query_params.get('product_name'):
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-
-        if brand_name and category_name and name and id:
-            queryset = queryset.filter(id=id, name=name, brand__name=brand_name, category__name=category_name)
-        elif brand_name and category_name and name:
-            queryset = queryset.filter(name=name, brand__name=brand_name, category__name=category_name)
-        elif brand_name and category_name and id:
-            queryset = queryset.filter(id=id, brand__name=brand_name, category__name=category_name)
-        elif brand_name and name and id:
-            queryset = queryset.filter(id=id, name=name, brand__name=brand_name)
-        elif category_name and name and id:
-            queryset = queryset.filter(id=id, name=name, category__name=category_name)
-        elif brand_name and category_name:
-            queryset = queryset.filter(brand__name=brand_name, category__name=category_name)
-        elif brand_name and name:
-            queryset = queryset.filter(name=name, brand__name=brand_name)
-        elif brand_name and id:
-            queryset = queryset.filter(id=id, brand__name=brand_name)
-        elif category_name and name:
-            queryset = queryset.filter(name=name, category__name=category_name)
-        elif category_name and id:
-            queryset = queryset.filter(id=id, category__name=category_name)
-        elif name and id:
-            queryset = queryset.filter(id=id, name=name)
-        elif brand_name:
-            queryset = queryset.filter(brand__name=brand_name)
-        elif category_name:
-            queryset = queryset.filter(category__name=category_name)
-        elif name:
-            queryset = queryset.filter(name=name)
-        elif id:
-            queryset = queryset.filter(id=id)
-        else:
-            queryset = []
-
-        # Serialize the queryset and return response
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    search_fields = ['id', 'name', 'brand__name', 'category__name']
 
 
 class TheMostSoldProductView(GenericAPIView):

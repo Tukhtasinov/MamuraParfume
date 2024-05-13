@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import filters
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -108,35 +108,11 @@ class OrderGetView(GenericAPIView):
         return Response({'success': True, 'data': response_data})
 
 
-class OrderSearchView(GenericAPIView):
+class OrderSearchView(ListAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'store_id', 'store_id.product__id']
-
-    def get(self, request, *args, **kwargs):
-        # Get query parameters from the request
-        product_id = request.query_params.get('product_id')
-        product_name = request.query_params.get('product_name')
-        store_id = request.query_params.get('store_id')
-
-        queryset = self.get_queryset()
-        if product_id and store_id:
-            queryset = queryset.filter(store_id__product_id=product_id, store_id=store_id)
-        elif product_name and store_id:
-            queryset = queryset.filter(store_id__product__name__icontains=product_name, store_id=store_id)
-        elif store_id:
-            queryset = queryset.filter(store_id=store_id)
-        elif product_id:
-            queryset = queryset.filter(store_id__product_id=product_id)
-        elif product_name:
-            queryset = queryset.filter(store_id__product__name__icontains=product_name)
-        else:
-            queryset = []
-
-        # Serialize the queryset and return response
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    search_fields = ['id', 'store_id__id', 'store_id__product__id', 'store_id__product__name']
 
 
 class OrderFilterByToday(GenericAPIView):

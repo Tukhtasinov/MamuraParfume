@@ -1,5 +1,5 @@
-from .product import ProductAddGenericApiView, ProductCRUDGenericAPIView, ProductDetailView, ProductSearchView, \
-    TheMostSoldProductView, AllProductGetView
+from .product import ProductAddGenericApiView, ProductCRUDGenericAPIView, ProductDetailView, \
+    TheMostSoldProductView, AllProductGetView, ProductSearchView
 from .category import CategoryAdd, CategoryGetAll, CategoryEditView, CategorySearchView
 from .brand import BrandAddView, BrandEditView, BrandAllGetView, BrandSearchView, TheBestSellerBrand
 from .store import StoreCreateView, StoreObtainEditView, StoreHistoryView, StoreGetWithExtra, StoreSearchView
