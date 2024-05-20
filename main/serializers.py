@@ -92,7 +92,7 @@ class OrderCreateSerializer(ModelSerializer):
 
 class OrderSerializer(ModelSerializer):
     # product_id = serializers.IntegerField(source='store_id.product_id', read_only=True)
-    # product_name = serializers.CharField(source='store_id.product.name', read_only=True)
+    product_name = serializers.CharField(source='store_id.product.name', read_only=True)
 
     class Meta:
         model = Order
@@ -117,3 +117,9 @@ class TopSoldProductSerializer(serializers.Serializer):
     product_name = serializers.CharField(source='store_id__product__name')
     total_count = serializers.IntegerField()
     total_price = serializers.IntegerField()
+
+
+class OrderFilterByDatesSerializer(serializers.Serializer):
+    start_date = serializers.DateTimeField(write_only=True)
+    end_date = serializers.DateTimeField(write_only=True)
+

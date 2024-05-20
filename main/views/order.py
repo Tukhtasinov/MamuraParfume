@@ -10,7 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from main.models import Order, Store, StoreHistory
-from main.serializers import OrderCreateSerializer, OrderSerializer, NotificationSerializer
+from main.serializers import OrderCreateSerializer, OrderSerializer, NotificationSerializer, \
+    OrderFilterByDatesSerializer
 
 
 class OrderCreateView(GenericAPIView):
@@ -83,7 +84,7 @@ class OrderEditOrDeleteView(GenericAPIView):
 
 class OrderGetView(GenericAPIView):
     pagination_class = PageNumberPagination
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
     def get(self, request):
@@ -146,25 +147,32 @@ class OrderFilterByToday(GenericAPIView):
 class OrderFilterByDates(GenericAPIView):
     pagination_class = PageNumberPagination
     permission_classes = [IsAuthenticated]
-    serializer_class = OrderSerializer
+    serializer_class = OrderFilterByDatesSerializer
 
     def get(self, request):
-        start_day = request.data.get('start_day')
-        end_day = request.data.get('end_day')
-        orders = []
-        if start_day and end_day:
-            orders = Order.objects.filter(created_at__range=(start_day, end_day))
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
-        elif start_day:
-            orders = Order.objects.filter(created_at__date=start_day)
+        orders = []
+        if start_date and end_date:
+            # Convert date strings to datetime objects
+            start_datetime = timezone.datetime.strptime(start_date, '%d.%m.%Y').date()
+            end_datetime = timezone.datetime.strptime(end_date, '%d.%m.%Y').date()
+
+            orders = Order.objects.filter(created_at__range=(start_datetime, end_datetime))
+        elif start_date:
+            start_datetime = timezone.datetime.strptime(start_date, '%d.%m.%Y').date()
+            orders = Order.objects.filter(created_at__date=start_datetime)
+        else:
+            orders = []
 
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(orders, request)
         if not request.query_params.get(self.pagination_class.page_query_param):
-            serializer = self.get_serializer(orders, many=True)
+            serializer = OrderSerializer(orders, many=True)
             data = {"result": serializer.data}
             return Response({'success': True, 'data': data})
-        serializer = self.get_serializer(page, many=True)
+        serializer = OrderSerializer(page, many=True)
 
         page_count = paginator.page.paginator.num_pages
         current_page = paginator.page.number
@@ -251,8 +259,8 @@ class DiagramAPIView(GenericAPIView):
     def get(self, request, key):
 
         data = {}
-        today = timezone.now().date()
-        day = timezone.now()
+        today = timezone.localtime().date()
+        day = timezone.localtime()
 
         if key == 'today':
             for i in range(24):

@@ -29,7 +29,7 @@ class StoreHistoryAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['store_id', 'count', 'price', 'payment_method']
+    list_display = ['store_id', 'count', 'price', 'payment_method', 'created_at']
 
 
 @admin.register(Notification)
